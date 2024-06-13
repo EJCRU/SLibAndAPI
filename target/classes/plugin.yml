@@ -1,0 +1,5 @@
+name: SLibAndAPI
+version: '1.0-SNAPSHOT'
+main: org.api.spoofer.slibandapi.SLibAndAPI
+api-version: '1.16'
+authors: [Spooferskiy]

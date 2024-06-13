@@ -1,0 +1,4 @@
+inventory:
+  a:
+    item: "lox"
+    slot: 2
