@@ -4,7 +4,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Qulifair {
-    String value();
-    boolean def() default false;
+public @interface Start {
+
 }

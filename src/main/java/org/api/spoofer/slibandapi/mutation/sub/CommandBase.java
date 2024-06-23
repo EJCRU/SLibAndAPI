@@ -6,20 +6,25 @@ import org.api.spoofer.slibandapi.mutation.param.CommandParam;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabExecutor;
+import org.bukkit.command.TabCompleter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 @Setter
 @Getter
 public class CommandBase extends Command {
 
 
-    private TabExecutor executor;
-    private CommandExecutor commandExecutor;
+    private TabCompleter tabCompleter = new TabCompleter() {
+        @Override
+        public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
+            return Collections.emptyList();
+        }
+    };
+    private CommandExecutor commandExecutor = (commandSender, command, s, strings) -> false;
 
 
     public CommandBase(@NotNull String name) {
@@ -33,7 +38,7 @@ public class CommandBase extends Command {
 
     @Override
     public @NotNull List<String> tabComplete(@NotNull CommandSender sender, @NotNull String alias, @NotNull String[] args) throws IllegalArgumentException {
-        return executor != null ? executor.onTabComplete(sender, this, alias, args) : Collections.emptyList();
+        return tabCompleter.onTabComplete(sender, this, alias, args);
     }
 
     public void register() {

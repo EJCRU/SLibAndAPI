@@ -11,86 +11,64 @@ import org.api.spoofer.slibandapi.mutation.sub.*;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.Plugin;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
+import java.lang.reflect.*;
 
 public class RegisterSLib {
+
     private static final ParamValue[] paramValues = new ParamValue[]{
             new ConfigParam(),
             new QParam(),
             new CommandParam()
     };
 
-    public static void reg(Plugin plugin, Class<?> clazz) {
+    private static final Mod[] mods = new Mod[]{
+            new ConfigScan(),
+            new QS(),
+            new Colorize(),
+            new BeanS(),
+            new hStart()
+    };
 
-        ModulePlugins modulePlugins;
+    public static void reg(final Plugin plugin, final Class<?> clazz) {
 
         try {
-
-            Settings settings = clazz.getAnnotation(Settings.class);
-
-            Object object = clazz.getConstructors()[0].newInstance(parameter(new ModulePlugins(plugin , null , null) , clazz.getConstructors()[0].getParameters()));
-
-
+            final Settings settings = clazz.getAnnotation(Settings.class);
 
             FileConfiguration cfg = plugin.getConfig();
 
-
-            if(settings != null && settings.cfg() != null) {
-                cfg = BuilderCfg.get(plugin , settings.cfg());
+            if (settings != null && settings.cfg() != null) {
+                cfg = BuilderCfg.get(plugin, settings.cfg());
             }
 
-            if(clazz.getSuperclass().isAssignableFrom(Settings.class)) {
-                try {
-                    cfg = BuilderCfg.get(plugin , (String) clazz.getMethod("getCfg").invoke(object));
-                } catch (NoSuchMethodException e) {
-                    throw new RuntimeException("No such setting '" + clazz.getSimpleName() + "'.");
+            final ModulePlugins modulePlugins = new ModulePlugins(plugin, clazz.getConstructors()[0].newInstance(parameter(new ModulePlugins(plugin , null , cfg) , clazz.getConstructors()[0].getParameters())), cfg);
+
+            for (Field f : clazz.getDeclaredFields()) {
+                f.setAccessible(true);
+                for (Mod mod : mods) {
+                    mod.field(modulePlugins, f);
                 }
             }
 
-            modulePlugins = new ModulePlugins(plugin,  object , cfg);
-        } catch (InstantiationException | InvocationTargetException | IllegalAccessException e) {
-            throw new RuntimeException("create instance is panic ");
-        }
-
-        Mod[] mods = new Mod[]{
-                new ConfigScan(modulePlugins),
-                new QS(modulePlugins),
-                new Colorize(modulePlugins),
-                new BeanS(modulePlugins)
-        };
-
-        for (Field f : clazz.getDeclaredFields()) {
-            f.setAccessible(true);
-            for (Mod mod : mods) {
-                mod.field(f);
+            for (Method m : clazz.getDeclaredMethods()) {
+                m.setAccessible(true);
+                for (Mod mod : mods) {
+                    mod.method(modulePlugins, m);
+                }
             }
-        }
-
-        for (Method m : clazz.getDeclaredMethods()) {
-            m.setAccessible(true);
-            for (Mod mod : mods) {
-                mod.method(m);
-            }
+        } catch (Exception e) {
+            throw new RuntimeException("create instance is panic ", e);
         }
     }
 
-    public static Object[] parameter(ModulePlugins plugin, Parameter[] parameters) {
-        Object[] ob = new Object[parameters.length];
+    public static Object[] parameter(final ModulePlugins plugin, final Parameter[] parameters) {
+        final Object[] ob = new Object[parameters.length];
         for (int i = 0; i < parameters.length; i++) {
             Object object = null;
             for (ParamValue mod : paramValues) {
-                if(object == null) {
-                    object = mod.eval(plugin, parameters[i]);
-                }
+                object = object == null ? mod.eval(plugin, parameters[i]) : object;
             }
-            if(object != null) {
-                if (parameters[i].isAnnotationPresent(Color.class)) {
-                    object = Colorize.colorize(object);
-                }
-                ob[i] = object;
+            if (object != null) {
+                ob[i] = parameters[i].isAnnotationPresent(Color.class) ? Colorize.colorize(object) : object;
             }
         }
         return ob;

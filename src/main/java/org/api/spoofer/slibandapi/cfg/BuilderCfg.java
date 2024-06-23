@@ -3,9 +3,9 @@ package org.api.spoofer.slibandapi.cfg;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 import lombok.AllArgsConstructor;
-import lombok.var;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
+
 import java.io.File;
 
 @AllArgsConstructor
@@ -21,7 +21,7 @@ public class BuilderCfg {
             patch.saveResource(name, false);
         }
 
-        var customConfig = new YamlConfiguration();
+        YamlConfiguration customConfig = new YamlConfiguration();
 
         try {
             customConfig.load(customConfigFile);

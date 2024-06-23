@@ -19,7 +19,7 @@ public class CommandParam implements ParamValue {
     public Object eval(ModulePlugins plugin, Parameter parameter) {
         Command command = parameter.getAnnotation(Command.class);
         if (command != null) {
-            if (commandMap == null && plugin.getPlugin().getServer().getPluginManager() instanceof SimplePluginManager) {
+            if (commandMap == null) {
                 SimplePluginManager manager = (SimplePluginManager) plugin.getPlugin().getServer().getPluginManager();
                 try {
                     Field field = SimplePluginManager.class.getDeclaredField("commandMap");

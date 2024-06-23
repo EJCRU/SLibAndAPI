@@ -1,7 +1,7 @@
 package org.api.spoofer.slibandapi.mutation.sub;
 
 import org.api.spoofer.slibandapi.ModulePlugins;
-import org.api.spoofer.slibandapi.SLibAndAPI;
+import org.api.spoofer.slibandapi.RegisterSLib;
 import org.api.spoofer.slibandapi.mutation.Mod;
 
 import java.lang.reflect.Field;
@@ -10,12 +10,8 @@ import java.lang.reflect.Method;
 public class BeanS extends Mod {
 
 
-    public BeanS(ModulePlugins plugins) {
-        super(plugins);
-    }
-
     @Override
-    public void field(Field field) {
+    public void field(ModulePlugins plugins,Field field) {
         Bean bean = field.getAnnotation(Bean.class);
 
         if(bean != null) {
@@ -28,16 +24,17 @@ public class BeanS extends Mod {
     }
 
     @Override
-    public void method(Method method) {
+    public void method(ModulePlugins plugins, Method method) {
         Bean bean = method.getAnnotation(Bean.class);
-
-        if(bean != null) {
+        if (bean != null) {
             try {
-                if(bean.value().isEmpty()) {
-                    method.invoke(plugins.getIns(), SLibAndAPI.parameter(plugins, method.getParameters()));
-                }else plugins.setBean(bean.value() , method.invoke(plugins.getIns(), SLibAndAPI.parameter(plugins , method.getParameters())));
+                Object[] params = RegisterSLib.parameter(plugins, method.getParameters());
+                Object result = method.invoke(plugins.getIns(), params);
+                if (!bean.value().isEmpty()) {
+                    plugins.setBean(bean.value(), result);
+                }
             } catch (Exception e) {
-                throw new RuntimeException("invoke method is panic " , e);
+                throw new RuntimeException("invoke method is panic", e);
             }
         }
     }
